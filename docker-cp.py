@@ -8,6 +8,7 @@ from io import BufferedRWPair, BufferedReader, DEFAULT_BUFFER_SIZE
 from tempfile import NamedTemporaryFile
 from re import compile
 
+# regex used to validate and extract data from the src and dest inputs
 pathre = compile(r"^(?:(?P<container>\w+):)?(?P<path>\.?(?:/?[\w\-_\.]*)+/?)$")
 
 def copy_from_container(container, src, dest, bufsize):
@@ -87,7 +88,7 @@ if __name__ == "__main__":
         leave(-1, "At least one of the path should be in a container.")
     if (pathre.match(args.src).group("container") is not None
         and pathre.match(args.dest).group("container") is not None):
-        # it's not allawed copy between containers
+        # it's not allowed copy between containers
         leave(-1, "It's not allowed copy between containers.")
 
     # connect with docker daemon
