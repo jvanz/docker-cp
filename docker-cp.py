@@ -87,5 +87,7 @@ if __name__ == "__main__":
     client = docker.from_env()
     if not client.ping():
         leave(-1, "It's not possible to connect to the Docker host. Check if the Docker daemon is running.")
-
-    copy(client, args.src, args.dest, args.buffer_size)
+    try:
+        copy(client, args.src, args.dest, args.buffer_size)
+    except Exception as e:
+        leave(-1, "Something wrong happened: " + str(e))
