@@ -21,7 +21,7 @@ def copy_from_container(container, src, dest, bufsize):
         buff = BufferedRWPair(archive[0], f, bufsize)
         # read the data (an archive) sent by docker daemon into a temporary file locally
         while True:
-            if buff.write(buff.read()) == 0:
+            if buff.write(buff.read(bufsize)) < bufsize:
                 break
         buff.flush()
     # let's extract the archive into the destination
@@ -40,8 +40,8 @@ def copy_to_container(container, src, dest, bufsize):
     # send the tar to the container
     if archive is not None:
         result = False
-        with open(archive, "rb") as fp:
-            result = container.put_archive(dest, BufferedReader(fp, buffer_size=bufsize))
+        with open(archive, "rb", bufsize=bufsize) as fp:
+            result = container.put_archive(dest, fp)
         remove(archive)
         return result
     return False
