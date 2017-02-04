@@ -2,11 +2,12 @@
 
 import argparse
 from os import remove, path
-import docker
 import tarfile
 from io import BufferedRWPair, BufferedReader, DEFAULT_BUFFER_SIZE
 from tempfile import NamedTemporaryFile
 from re import compile
+
+import docker
 
 # regex used to validate and extract data from the src and dest inputs
 pathre = compile(r"^(?:(?P<container>\w+):)?(?P<path>\.?(?:/?[\w\-_\.]*)+/?)$")
