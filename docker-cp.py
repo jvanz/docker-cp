@@ -42,6 +42,19 @@ def copy_to_container(container, src, dest, bufsize):
         return result
     return False
 
+def copy(client, src, dest, bufsize):
+    """Copy the file in src path to dest"""
+    src_match = pathre.match(src)
+    dest_match = pathre.match(dest)
+    if src_match.group("container"):
+        # copy from container
+        container = client.containers.get(src_match.group("container"))
+        copy_from_container(container, src_match.group("path"), dest_match.group("path"), bufsize)
+    else:
+        # copy to container
+        container = client.containers.get(dest_match.group("container"))
+        copy_to_container(container, src_match.group("path"), dest_match.group("path"), bufsize)
+
 def leave(code, msg):
     """Print the msg and quit the program"""
     print(msg)
@@ -72,3 +85,5 @@ if __name__ == "__main__":
     client = docker.from_env()
     if not client.ping():
         leave(-1, "It's not possible to connect to the Docker host. Check if the Docker daemon is running.")
+
+    copy(client, args.src, args.dest, args.buffer_size)
