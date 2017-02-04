@@ -8,7 +8,12 @@ filesystem.
 
 To see how to use the script execute: `docker-cp.py -h`
 
-Exaples:
+### Dependencies
+
+To install all dependencies: `pip install -r requirements.txt`
+
+### Exaples:
+
 
 Copy from container:
 
