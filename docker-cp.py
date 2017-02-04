@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
+from os import remove, path
 import docker
 import tarfile
 from io import BufferedRWPair, BufferedReader, DEFAULT_BUFFER_SIZE
@@ -10,20 +10,22 @@ from re import compile
 
 pathre = compile(r"^(?:(?P<container>\w+):)?(?P<path>\.?(?:/?[\w\-_\.]+)+/?)$")
 
-def copy_from_container(container, src, dest, buffer_size):
+def copy_from_container(container, src, dest, bufsize):
     """Method to copy file from container to local filesystem"""
     tar_name = None
-    with NamedTemporaryFile(buffering=buffer_size, prefix="dockercp", delete=False) as f:
+    with NamedTemporaryFile(buffering=bufsize, prefix="dockercp", delete=False) as f:
         tar_name = f.name
         archive = container.get_archive(src)
-        buff = BufferedRWPair(archive[0], f, buffer_size)
+        buff = BufferedRWPair(archive[0], f, bufsize)
+        # read the data (an archive) sent by docker daemon into a temporary file locally
         while True:
             if buff.write(buff.read()) == 0:
                 break
         buff.flush()
-    with tarfile.open(tar_name) as tar:
+    # let's extract the archive into the destination
+    with tarfile.open(tar_name, bufsize=bufsize) as tar:
         tar.extractall(path=dest)
-    os.remove(tar_name)
+    remove(tar_name)
 
 def copy_to_container(container, src, dest, bufsize):
     """Method to copy file from local file system into container"""
@@ -31,14 +33,14 @@ def copy_to_container(container, src, dest, bufsize):
     archive = None
     with NamedTemporaryFile(buffering=bufsize, prefix="dockercp", delete=False) as fp:
         with tarfile.open(mode="w:bz2",fileobj=fp, bufsize=bufsize) as tar:
-            tar.add(src, arcname=os.path.basename(src))
+            tar.add(src, arcname=path.basename(src))
         archive = fp.name
     # send the tar to the container
     if archive is not None:
         result = False
         with open(archive, "rb") as fp:
             result = container.put_archive(dest, BufferedReader(fp, buffer_size=bufsize))
-        os.remove(archive)
+        remove(archive)
         return result
     return False
 
@@ -66,7 +68,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Copy files from/to Docker containers")
     parser.add_argument("-b", "--buffer-size", dest="buffer_size", type=int,
             default=DEFAULT_BUFFER_SIZE,
-            help="Specify the buffer size (bytes) used to copy the to/from the container")
+            help="Specify the buffer size (bytes) used to copy to/from the container")
     parser.add_argument("src", type=str, help="Source file should be copied")
     parser.add_argument("dest", type=str, help="Destination where the file should be copy")
     args = parser.parse_args()
