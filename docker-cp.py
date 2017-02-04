@@ -51,11 +51,13 @@ def copy(client, src, dest, bufsize):
     if src_match.group("container"):
         # copy from container
         container = client.containers.get(src_match.group("container"))
-        copy_from_container(container, src_match.group("path"), dest_match.group("path"), bufsize)
+        copy_from_container(container, src_match.group("path"),
+            dest_match.group("path"), bufsize)
     else:
         # copy to container
         container = client.containers.get(dest_match.group("container"))
-        copy_to_container(container, src_match.group("path"), dest_match.group("path"), bufsize)
+        copy_to_container(container, src_match.group("path"),
+            dest_match.group("path"), bufsize)
 
 def leave(code, msg):
     """Print the msg and quit the program"""
@@ -65,28 +67,34 @@ def leave(code, msg):
 
 if __name__ == "__main__":
     # First we validate all the command line arguments
-    parser = argparse.ArgumentParser(description="Copy files from/to Docker containers")
+    parser = argparse.ArgumentParser(description=("Copy files from/to Docker"
+        "containers"))
     parser.add_argument("-b", "--buffer-size", dest="buffer_size", type=int,
-            default=DEFAULT_BUFFER_SIZE,
-            help="Specify the buffer size (bytes) used to copy to/from the container")
-    parser.add_argument("src", type=str, help="Source file should be copied. [CONTAINER:]<path>")
-    parser.add_argument("dest", type=str, help="Destination where the file should be copy into. [CONTAINER:]<path>")
+        default=DEFAULT_BUFFER_SIZE,
+        help="Specify the buffer size (bytes) used to copy to/from the container")
+    parser.add_argument("src", type=str, help=("Source file should be copied."
+        "[CONTAINER:]<path>"))
+    parser.add_argument("dest", type=str, help=("Destination where the file should"
+        "be copy into. [CONTAINER:]<path>"))
     args = parser.parse_args()
 
     # let's validate the paths
     if not pathre.fullmatch(args.src) or not pathre.fullmatch(args.dest):
         leave(-1, "Invalid paths.")
-    if pathre.match(args.src).group("container") is None and pathre.match(args.dest).group("container") is None:
+    if (pathre.match(args.src).group("container") is None and
+        pathre.match(args.dest).group("container") is None):
         # at least one of the path should be in the container
         leave(-1, "At least one of the path should be in a container.")
-    if pathre.match(args.src).group("container") is not None and pathre.match(args.dest).group("container") is not None:
+    if (pathre.match(args.src).group("container") is not None
+        and pathre.match(args.dest).group("container") is not None):
         # it's not allawed copy between containers
         leave(-1, "It's not allowed copy between containers.")
 
     # connect with docker daemon
     client = docker.from_env()
     if not client.ping():
-        leave(-1, "It's not possible to connect to the Docker host. Check if the Docker daemon is running.")
+        leave(-1, ("It's not possible to connect to the Docker host. Check if"
+            "the Docker daemon is running."))
     try:
         copy(client, args.src, args.dest, args.buffer_size)
     except Exception as e:
