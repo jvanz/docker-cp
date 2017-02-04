@@ -63,7 +63,8 @@ def copy(client, src, dest, bufsize):
 def leave(code, msg):
     """Print the msg and quit the program"""
     print(msg)
-    print("Use the -h options to see how the usage help")
+    if code < 0:
+        print("Use the -h options to see how the usage help")
     quit(code)
 
 if __name__ == "__main__":
