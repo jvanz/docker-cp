@@ -69,8 +69,8 @@ if __name__ == "__main__":
     parser.add_argument("-b", "--buffer-size", dest="buffer_size", type=int,
             default=DEFAULT_BUFFER_SIZE,
             help="Specify the buffer size (bytes) used to copy to/from the container")
-    parser.add_argument("src", type=str, help="Source file should be copied")
-    parser.add_argument("dest", type=str, help="Destination where the file should be copy")
+    parser.add_argument("src", type=str, help="Source file should be copied. [CONTAINER:]<path>")
+    parser.add_argument("dest", type=str, help="Destination where the file should be copy into. [CONTAINER:]<path>")
     args = parser.parse_args()
 
     # let's validate the paths
