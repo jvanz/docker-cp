@@ -8,7 +8,7 @@ from io import BufferedRWPair, BufferedReader, DEFAULT_BUFFER_SIZE
 from tempfile import NamedTemporaryFile
 from re import compile
 
-pathre = compile(r"^(?:(?P<container>\w+):)?(?P<path>\.?(?:/?[\w\-_\.]+)+/?)$")
+pathre = compile(r"^(?:(?P<container>\w+):)?(?P<path>\.?(?:/?[\w\-_\.]*)+/?)$")
 
 def copy_from_container(container, src, dest, bufsize):
     """Method to copy file from container to local filesystem"""
