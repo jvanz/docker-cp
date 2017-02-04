@@ -9,6 +9,7 @@ import tarfile
 import tempfile
 
 def copy_from_container(container, src, dest, buffer_size):
+    """Method to copy file from container to local filesystem"""
     tar_name = None
     with tempfile.NamedTemporaryFile(buffering=buffer_size, prefix="dockercp", delete=False) as f:
         tar_name = f.name
@@ -22,6 +23,22 @@ def copy_from_container(container, src, dest, buffer_size):
         tar.extractall(path=dest)
     os.remove(tar_name)
 
+def copy_to_container(container, src, dest, bufsize):
+    """Method to copy file from local file system into container"""
+    # it's necessary create a tar file with src file/directory
+    archive = None
+    with tempfile.NamedTemporaryFile(buffering=bufsize, prefix="dockercp", delete=False) as fp:
+        with tarfile.open(mode="w:bz2",fileobj=fp, bufsize=bufsize) as tar:
+            tar.add(src, arcname=os.path.basename(src))
+        archive = fp.name
+    # send the tar to the container
+    if archive is not None:
+        result = False
+        with open(archive, "rb") as fp:
+            result = container.put_archive(dest, io.BufferedReader(fp, buffer_size=bufsize))
+        os.remove(archive)
+        return result
+    return False
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Copy files from/to Docker containers")
