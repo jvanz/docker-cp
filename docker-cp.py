@@ -2,8 +2,26 @@
 
 import argparse
 import re
+import os
+import docker
+import io
+import tarfile
+import tempfile
 
-path_regex = r"(?:(?P<container>\w+):)?(?P<path>(?:\.|(?:\w+|/|-)+))"
+def copy_from_container(container, src, dest, buffer_size):
+    tar_name = None
+    with tempfile.NamedTemporaryFile(buffering=buffer_size, prefix="dockercp", delete=False) as f:
+        tar_name = f.name
+        archive = container.get_archive(src)
+        buff = io.BufferedRWPair(archive[0], f, buffer_size)
+        while True:
+            if buff.write(buff.read()) == 0:
+                break
+        buff.flush()
+    with tarfile.open(tar_name) as tar:
+        tar.extractall(path=dest)
+    os.remove(tar_name)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Copy files from/to Docker containers")
