@@ -26,7 +26,29 @@ def copy_from_container(container, src, dest, bufsize):
         buff.flush()
     # let's extract the archive into the destination
     with tarfile.open(tar_name, bufsize=bufsize) as tar:
-        tar.extractall(path=dest)
+        
+        import os
+        
+        def is_within_directory(directory, target):
+            
+            abs_directory = os.path.abspath(directory)
+            abs_target = os.path.abspath(target)
+        
+            prefix = os.path.commonprefix([abs_directory, abs_target])
+            
+            return prefix == abs_directory
+        
+        def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+        
+            for member in tar.getmembers():
+                member_path = os.path.join(path, member.name)
+                if not is_within_directory(path, member_path):
+                    raise Exception("Attempted Path Traversal in Tar File")
+        
+            tar.extractall(path, members, numeric_owner=numeric_owner) 
+            
+        
+        safe_extract(tar, path=dest)
     remove(tar_name)
 
 def copy_to_container(container, src, dest, bufsize):
